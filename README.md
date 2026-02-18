@@ -13,12 +13,23 @@
 > [!IMPORTANT]
 > Please fill out the following table with the name and expected responsibilities of each team member.
 
-|               | Expected responsibilities |
-| :------------ | :------------------------ |
-| Team member 1 | Team Leader, etc.         |
-| Team member 2 | Data Modeling, etc.       |
-| $\vdots$      | $\vdots$                  |
-| Team member N | Data Visualization, etc.  |
+|                    | Expected responsibilities |
+| :------------      | :------------------------ |
+| Ayush Kumar        | Team Leader 1             |
+| Haseeb Raza        | Team Leader 2             |
+| Md Asib Chowdhury  | TBD                       |  
+| Nursultan Tuleev   | TBD                    |
+| Rafael Ibayev      | TBD                    |
+| Muna Hassan        | TBD                    |
+| Feliks             | TBD                    |
+| Sufyan Muhammad    | TBD                    |
+| Saidul Islam Nayan | TBD                    |
+| Szabolcs Nagy      | TBD                    |
+| Aidana Iskenderova | TBD                    |
+| Akzhurek Askarbek  | TBD                    |
+| Madina Akpaeva     | TBD                    |
+| Yushay Aizaz       | TBD                    |
+| Soma Tohidinia     | TBD                    |
 
 ## The *Problem* behind the project
 
