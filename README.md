@@ -1,52 +1,90 @@
-# Data Science Club Project Template
+# 🎵 Spotify Song Recommendation System
 
-> [!IMPORTANT]
-> We ask **Project Leaders** to replace these blocks marked as `Important` with the actual project details.
+## Brief Project Description
 
-## Brief project description
+This project aims to build a music recommendation system that suggests songs similar to a user’s input based on audio characteristics such as tempo, energy, and danceability. The system will use machine learning techniques to identify similarity between songs and provide recommendations through an interactive web interface.
 
-> [!IMPORTANT]
-> 1-3 sentences about the project. This shall be a high-level overview with little to no technical details.
+---
 
 ## Team
 
-> [!IMPORTANT]
-> Please fill out the following table with the name and expected responsibilities of each team member.
+| Name                 | Expected Responsibilities |
+| :------------------- | :------------------------ |
+| Ayush Khemani        | Project Co-Lead, Project Coordination, GitHub Management |
+| Haseeb Raza          | Project Co-Lead, Technical Support, Team Coordination |
+| Nursultan Tuleev     | Build ML Recommendation Model |
+| Muna Hassan          | Data Exploration, Cleaning, EDA |
+| Saidul Islam Nayan   | Build ML Recommendation Model |
+| Yushay Aizaz         | Create Web Interface using Streamlit |
 
-|               | Expected responsibilities |
-| :------------ | :------------------------ |
-| Team member 1 | Team Leader, etc.         |
-| Team member 2 | Data Modeling, etc.       |
-| $\vdots$      | $\vdots$                  |
-| Team member N | Data Visualization, etc.  |
+---
 
-## The *Problem* behind the project
+## The *Problem* behind the Project
 
-> [!IMPORTANT]
-> If you have already outlined the problem that your project is trying to create a solution for, then please introduce it briefly. Otherwise, replace it later.
+With millions of songs available across platforms, users often struggle to discover music that matches their preferences or mood. Traditional browsing methods rely heavily on manual searching or popularity-based suggestions. This project aims to solve that problem by creating a content-based recommendation system that identifies songs with similar audio features and provides personalized suggestions automatically.
+
+---
 
 ## Challenges
 
-> [!IMPORTANT]
-> Here you may list challenges that make the project idea / problem less straightforward from a *Data Science* point of view.
+Some challenges involved in this project include:
+
+- Handling a large dataset (600k+ songs)
+- Cleaning and preprocessing real-world music data
+- Selecting meaningful audio features for similarity computation
+- Designing an efficient recommendation algorithm
+- Integrating machine learning models with a web application
+- Ensuring fast response time for recommendations
+
+---
 
 ## Expectations
 
-> [!IMPORTANT]
-> If you have an expectation about the outcomes of your project, then please outline it briefly. Otherwise, leave it unchanged.
+By the end of this project, we expect to deliver:
+
+- A functional content-based music recommendation system
+- A trained machine learning model capable of suggesting similar songs
+- A user-friendly web interface for interaction
+- A complete end-to-end data science project suitable for portfolios
+- Practical experience in teamwork, GitHub collaboration, and deployment
+
+---
 
 ## Tools & Technologies
 
-> [!IMPORTANT]
-> Please list the tools that you expect to work with in the project. (e.g.: `Python`, `R`, `NumPy`, `Pandas`, `Matplotlib`, etc.)
+The project will primarily use the following tools and technologies:
 
-## How to run the Project
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- Matplotlib / Plotly
+- Streamlit
+- Git & GitHub
 
-> [!WARNING]
-> This section is reserved for guidance on how to run the project components. This becomes relevant after code has been pushed to the repository, and is expected to be maintained according to the evolving state of the project.
+
+---
+
+## How to Run the Project
+
+> ⚠️ This section will be updated as development progresses.
+
+General steps (expected):
+
+1. Clone the repository
+2. Install dependencies from `requirements.txt`
+3. Run the Streamlit application
+4. Input a song name to receive recommendations
+
+---
 
 ## Results
 
-> [!CAUTION]
-> This section is reserved for discussing the project results at the **end of the semester**.
+> 🚧 This section will be completed at the end of the project.
 
+It will include:
+
+- Model performance insights
+- Screenshots of the web application
+- Final recommendations demo
+- Key learnings from the project
