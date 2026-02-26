@@ -71,7 +71,8 @@ The project will primarily use the following tools and technologies:
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
-streamlit run app/app.py
+3. Run the Streamlit app:
+   streamlit run app/app.py
 
 ---
 
