@@ -76,13 +76,6 @@ The project will primarily use the following tools and technologies:
 
 streamlit run app/app.py
 
-General steps (expected):
-
-1. Clone the repository
-2. Install dependencies from `requirements.txt`
-3. Run the Streamlit application
-4. Input a song name to receive recommendations
-
 ---
 
 ## Results
