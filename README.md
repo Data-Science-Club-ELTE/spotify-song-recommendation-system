@@ -67,7 +67,14 @@ The project will primarily use the following tools and technologies:
 
 ## How to Run the Project
 
-> ⚠️ This section will be updated as development progresses.
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+
+## Run the Streamlit app:
+
+streamlit run app/app.py
 
 General steps (expected):
 
