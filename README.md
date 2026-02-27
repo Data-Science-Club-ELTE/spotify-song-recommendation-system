@@ -67,15 +67,15 @@ The project will primarily use the following tools and technologies:
 
 ## How to Run the Project
 
-> ⚠️ This section will be updated as development progresses.
-
-General steps (expected):
-
 1. Clone the repository
-2. Install dependencies from `requirements.txt`
-3. Run the Streamlit application
-4. Input a song name to receive recommendations
-
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run the Streamlit app:
+   ```bash
+   streamlit run app/app.py
+   ```
 ---
 
 ## Results
