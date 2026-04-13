@@ -78,13 +78,66 @@ The project will primarily use the following tools and technologies:
    ```
 ---
 
+## What Has Been Built
+
+### 1. Data Exploration & Cleaning (`notebooks/dataset_exploration.ipynb`)
+
+The EDA notebook performs a full preprocessing pipeline on a 600k+ song Spotify CSV dataset (`data/raw/tracks.csv`):
+
+- **Loading & inspection** — reads `tracks.csv` with Pandas and prints shape, column names, and data types.
+- **Missing value analysis** — counts and visualises missing values per column; drops rows where `name` is null.
+- **Duplicate removal** — detects and removes fully duplicate rows.
+- **Data-type fixes**
+  - Parses the string-encoded `artists` and `id_artists` columns into proper Python lists.
+  - Converts `explicit` and `mode` from integers to booleans.
+  - Extracts the release year from `release_date` into a new `release_year` integer column and drops the original.
+- **Column normalisation** — strips whitespace, lowercases, and replaces spaces/hyphens with underscores in all column headers.
+- **Output** — saves the cleaned dataframe to `data/cleaned_spotify.csv`.
+
+---
+
+### 2. Recommendation Models (`models/recommendations.ipynb`)
+
+Three complementary recommendation strategies are implemented on top of the cleaned dataset:
+
+#### a) Content-Based Recommender (Cosine Similarity)
+- Selects 11 audio features: `danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, `instrumentalness`, `liveness`, `valence`, `tempo`.
+- Standardises the feature matrix with `StandardScaler`.
+- For a given input song, computes pairwise **cosine similarity** against all tracks and returns the top-N most similar songs.
+
+#### b) K-Means Clustering Recommender
+- Runs the **Elbow Method** (SSE vs K) to guide cluster count selection.
+- Trains a `MiniBatchKMeans` model (K = 7) on the full scaled feature set.
+- Recommends songs by randomly sampling from the same cluster as the input track.
+
+#### c) Hybrid Recommender (Content + Popularity)
+- Fetches a broad candidate pool (50 songs) using the cosine-similarity recommender.
+- Re-ranks candidates by `release_year` and `popularity` (descending) to surface recent, well-known matches.
+
+#### Visualisation & Evaluation
+- **t-SNE plot** — 2-D projection of the scaled feature space coloured by cluster label.
+- **Radar chart** — overlaid Plotly polar chart comparing audio features of an input track vs. a recommended track.
+- **Clustering metrics** — Silhouette Score and Davies-Bouldin Index for the K-Means solution.
+
+---
+
+### 3. Web Application (`app/app.py`)
+
+A minimal **Streamlit** interface that:
+
+- Provides a text input for the user to enter a song name.
+- Returns placeholder recommendations on submit (ready to be wired up to the ML back-end).
+- Runs locally with `streamlit run app/app.py`.
+
+---
+
 ## Results
 
-> 🚧 This section will be completed at the end of the project.
+> 🚧 Full model evaluation and app screenshots will be added once the ML back-end is integrated with the Streamlit front-end.
 
-It will include:
-
-- Model performance insights
-- Screenshots of the web application
-- Final recommendations demo
-- Key learnings from the project
+**Current status:**
+- ✅ Data pipeline complete — cleaned dataset produced from raw 600k-song CSV.
+- ✅ Three recommendation algorithms implemented and tested in notebook.
+- ✅ Clustering evaluated with Silhouette Score and Davies-Bouldin Index.
+- ✅ Streamlit app scaffold deployed and runnable.
+- ⏳ Wiring ML models into the web interface — in progress.
