@@ -5,6 +5,7 @@ from pathlib import Path
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import MiniBatchKMeans
 import warnings
+import urllib.request
 warnings.filterwarnings('ignore')
 
 # ==================== PAGE CONFIG ====================
@@ -17,6 +18,32 @@ st.set_page_config(
 st.title("🎵 Spotify Song Recommendation System - Demo Version")
 st.markdown("Get personalized song recommendations from a curated 50K song demo database!")
 st.info("💡 **Demo Version**: Using 50,000 songs for instant cloud deployment. Full version (586K songs) available locally.")
+
+# ==================== DOWNLOAD DATA FROM GITHUB RELEASES ====================
+def download_from_github_releases():
+    """Download data files from GitHub Releases."""
+    data_path = Path(__file__).parent.parent / 'data'
+    data_path.mkdir(exist_ok=True)
+    
+    files = {
+        'processed_spotify.csv': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/processed_spotify.csv',
+        'feature_matrix.npy': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_matrix.npy',
+        'feature_names.txt': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_names.txt'
+    }
+    
+    all_exist = all((data_path / f).exists() for f in files.keys())
+    if not all_exist:
+        st.info("📥 Downloading real data from GitHub Releases...")
+        for filename, url in files.items():
+            filepath = data_path / filename
+            if not filepath.exists():
+                try:
+                    urllib.request.urlretrieve(url, filepath)
+                    st.info(f"✅ Downloaded {filename}")
+                except Exception as e:
+                    st.warning(f"⚠️ Could not download {filename}")
+                    return False
+    return True
 
 # ==================== LOAD DEMO DATA ====================
 @st.cache_resource
