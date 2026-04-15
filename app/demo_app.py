@@ -15,13 +15,13 @@ st.set_page_config(
 )
 
 st.title("🎵 Spotify Song Recommendation System - Demo Version")
-st.markdown("Get personalized song recommendations from a curated 10K song demo database!")
-st.info("💡 **Demo Version**: Using 10,000 songs for instant cloud deployment. Full version (586K songs) available locally.")
+st.markdown("Get personalized song recommendations from a curated 50K song demo database!")
+st.info("💡 **Demo Version**: Using 50,000 songs for instant cloud deployment. Full version (586K songs) available locally.")
 
 # ==================== LOAD DEMO DATA ====================
 @st.cache_resource
 def load_demo_data():
-    """Load or generate demo data (10k sample)."""
+    """Load or generate demo data (50k sample)."""
     data_path = Path(__file__).parent.parent / 'data'
     demo_path = Path(__file__).parent / 'demo_data'
     demo_path.mkdir(exist_ok=True)
@@ -32,7 +32,7 @@ def load_demo_data():
     demo_names = demo_path / 'demo_feature_names.txt'
     
     if not demo_csv.exists():
-        st.info("📥 Loading real Spotify data...")
+        st.info("� Generating demo dataset...")
         
         # Try to load full dataset from local
         if (data_path / 'processed_spotify.csv').exists():
@@ -42,35 +42,24 @@ def load_demo_data():
             with open(data_path / 'feature_names.txt', 'r') as f:
                 recommendation_features = [line.strip() for line in f.readlines()]
         else:
-            # Try to download from GitHub Releases
-            st.info("📥 Downloading from GitHub Releases...")
-            try:
-                import urllib.request
-                import tempfile
-                import zipfile
-                
-                url_base = "https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data"
-                
-                with st.spinner("Downloading processed_spotify.csv..."):
-                    urllib.request.urlretrieve(f"{url_base}/processed_spotify.csv", data_path / 'processed_spotify.csv')
-                with st.spinner("Downloading feature_matrix.npy..."):
-                    urllib.request.urlretrieve(f"{url_base}/feature_matrix.npy", data_path / 'feature_matrix.npy')
-                with st.spinner("Downloading feature_names.txt..."):
-                    urllib.request.urlretrieve(f"{url_base}/feature_names.txt", data_path / 'feature_names.txt')
-                
-                tracks_df = pd.read_csv(data_path / 'processed_spotify.csv')
-                feature_matrix = np.load(data_path / 'feature_matrix.npy')
-                with open(data_path / 'feature_names.txt', 'r') as f:
-                    recommendation_features = [line.strip() for line in f.readlines()]
-                
-                st.success("✅ Downloaded real Spotify data!")
-            except Exception as e:
-                st.error(f"❌ Could not download data: {str(e)}")
-                st.info("📤 Please upload data files to GitHub Releases (v1.0-data)")
-                st.stop()
+            # Use synthetic data for fast demo
+            st.info("🎯 Using synthetic demo data (upload real data to GitHub Releases to use your own dataset)")
+            n_songs = 50000
+            features = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 
+                       'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
+            
+            data = {
+                'name': [f'Song {i}' for i in range(n_songs)],
+                'artists': [f'Artist {i % 100}' for i in range(n_songs)],
+                'popularity': np.random.randint(0, 100, n_songs),
+                'release_year': np.random.randint(1950, 2024, n_songs)
+            }
+            tracks_df = pd.DataFrame(data)
+            feature_matrix = np.random.rand(n_songs, 11)
+            recommendation_features = features
         
-        # Use 10k sample for faster processing on Cloud
-        sample_size = min(10000, len(tracks_df))
+        # Use 50k sample
+        sample_size = min(50000, len(tracks_df))
         sample_indices = np.random.choice(len(tracks_df), size=sample_size, replace=False)
         tracks_df = tracks_df.iloc[sample_indices].reset_index(drop=True)
         feature_matrix = feature_matrix[sample_indices]
@@ -81,7 +70,7 @@ def load_demo_data():
         with open(demo_names, 'w') as f:
             f.write('\n'.join(recommendation_features))
         
-        st.success(f"✅ Demo dataset ready! ({len(tracks_df):,} real songs)")
+        st.success(f"✅ Demo dataset ready! ({len(tracks_df):,} songs)")
     else:
         tracks_df = pd.read_csv(demo_csv)
         feature_matrix = np.load(demo_features)
