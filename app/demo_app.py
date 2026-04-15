@@ -16,107 +16,98 @@ st.set_page_config(
 )
 
 st.title("🎵 Spotify Song Recommendation System - Demo Version")
-st.markdown("Get personalized song recommendations from a curated 50K song demo database!")
-st.info("💡 **Demo Version**: Using 50,000 songs for instant cloud deployment. Full version (586K songs) available locally.")
+st.markdown("Get personalized song recommendations from 10,000 REAL Spotify songs!")
+st.info("💡 **Demo Version**: Using 10,000 real songs from our 586K dataset for fast cloud deployment.")
 
-# ==================== DOWNLOAD DATA FROM GITHUB RELEASES ====================
-def download_from_github_releases():
-    """Download data files from GitHub Releases."""
-    data_path = Path(__file__).parent.parent / 'data'
-    data_path.mkdir(exist_ok=True)
-    
-    files = {
-        'processed_spotify.csv': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/processed_spotify.csv',
-        'feature_matrix.npy': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_matrix.npy',
-        'feature_names.txt': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_names.txt'
-    }
-    
-    all_exist = all((data_path / f).exists() for f in files.keys())
-    if not all_exist:
-        st.info("📥 Downloading real data from GitHub Releases...")
-        for filename, url in files.items():
-            filepath = data_path / filename
-            if not filepath.exists():
-                try:
-                    urllib.request.urlretrieve(url, filepath)
-                    st.info(f"✅ Downloaded {filename}")
-                except Exception as e:
-                    st.warning(f"⚠️ Could not download {filename}")
-                    return False
-    return True
-
-# ==================== LOAD DEMO DATA ====================
+# ==================== LOAD & SAMPLE REAL DATA ====================
 @st.cache_resource
 def load_demo_data():
-    """Load or generate demo data (50k sample)."""
+    """Download full real data and sample 10k songs - REAL DATA ONLY."""
     data_path = Path(__file__).parent.parent / 'data'
     demo_path = Path(__file__).parent / 'demo_data'
     demo_path.mkdir(exist_ok=True)
+    data_path.mkdir(exist_ok=True)
     
-    # Check if demo files exist
+    # Check if cached demo exists
     demo_csv = demo_path / 'demo_spotify.csv'
     demo_features = demo_path / 'demo_features.npy'
     demo_names = demo_path / 'demo_feature_names.txt'
     
-    if not demo_csv.exists():
-        st.info("� Generating demo dataset...")
-        
-        # Try to load full dataset from local
-        if (data_path / 'processed_spotify.csv').exists():
-            st.info("✅ Found local data files!")
-            tracks_df = pd.read_csv(data_path / 'processed_spotify.csv')
-            feature_matrix = np.load(data_path / 'feature_matrix.npy')
-            with open(data_path / 'feature_names.txt', 'r') as f:
-                recommendation_features = [line.strip() for line in f.readlines()]
-        else:
-            # Use synthetic data for fast demo
-            st.info("🎯 Using synthetic demo data (upload real data to GitHub Releases to use your own dataset)")
-            n_songs = 50000
-            features = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 
-                       'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
-            
-            data = {
-                'name': [f'Song {i}' for i in range(n_songs)],
-                'artists': [f'Artist {i % 100}' for i in range(n_songs)],
-                'popularity': np.random.randint(0, 100, n_songs),
-                'release_year': np.random.randint(1950, 2024, n_songs)
-            }
-            tracks_df = pd.DataFrame(data)
-            feature_matrix = np.random.rand(n_songs, 11)
-            recommendation_features = features
-        
-        # Use 50k sample
-        sample_size = min(50000, len(tracks_df))
-        sample_indices = np.random.choice(len(tracks_df), size=sample_size, replace=False)
-        tracks_df = tracks_df.iloc[sample_indices].reset_index(drop=True)
-        feature_matrix = feature_matrix[sample_indices]
-        
-        # Save demo data
-        tracks_df.to_csv(demo_csv, index=False)
-        np.save(demo_features, feature_matrix)
-        with open(demo_names, 'w') as f:
-            f.write('\n'.join(recommendation_features))
-        
-        st.success(f"✅ Demo dataset ready! ({len(tracks_df):,} songs)")
-    else:
+    if demo_csv.exists() and demo_features.exists() and demo_names.exists():
         tracks_df = pd.read_csv(demo_csv)
         feature_matrix = np.load(demo_features)
         with open(demo_names, 'r') as f:
             recommendation_features = [line.strip() for line in f.readlines()]
+        df_features_scaled = pd.DataFrame(feature_matrix, columns=recommendation_features)
+        
+        kmeans = MiniBatchKMeans(n_clusters=6, random_state=42, batch_size=100, n_init=10)
+        cluster_labels = kmeans.fit_predict(feature_matrix)
+        tracks_df['cluster'] = cluster_labels
+        
+        return tracks_df, feature_matrix, df_features_scaled, recommendation_features
     
-    # Create DataFrame from features
+    # Download real dataset from GitHub Releases
+    st.info("📥 Downloading REAL Spotify data...")
+    
+    csv_url = 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/processed_spotify.csv'
+    features_url = 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_matrix.npy'
+    names_url = 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_names.txt'
+    
+    csv_file = data_path / 'processed_spotify.csv'
+    features_file = data_path / 'feature_matrix.npy'
+    names_file = data_path / 'feature_names.txt'
+    
+    try:
+        # Download files
+        if not csv_file.exists():
+            with st.spinner("Downloading songs..."):
+                urllib.request.urlretrieve(csv_url, csv_file)
+        
+        if not features_file.exists():
+            with st.spinner("Downloading features..."):
+                urllib.request.urlretrieve(features_url, features_file)
+        
+        if not names_file.exists():
+            with st.spinner("Downloading metadata..."):
+                urllib.request.urlretrieve(names_url, names_file)
+        
+        # Load full dataset
+        st.info("🔄 Loading and sampling 10,000 real songs...")
+        tracks_df = pd.read_csv(csv_file)
+        feature_matrix = np.load(features_file)
+        with open(names_file, 'r') as f:
+            recommendation_features = [line.strip() for line in f.readlines()]
+        
+        # Sample 10K REAL songs
+        sample_size = min(10000, len(tracks_df))
+        sample_indices = np.random.choice(len(tracks_df), size=sample_size, replace=False)
+        tracks_df = tracks_df.iloc[sample_indices].reset_index(drop=True)
+        feature_matrix = feature_matrix[sample_indices]
+        
+        st.success(f"✅ Loaded {sample_size:,} REAL songs from Spotify!")
+        
+    except Exception as e:
+        st.error(f"Error downloading: {str(e)}")
+        st.stop()
+    
+    # Save encrypted demo
+    tracks_df.to_csv(demo_csv, index=False)
+    np.save(demo_features, feature_matrix)
+    with open(demo_names, 'w') as f:
+        f.write('\n'.join(recommendation_features))
+    
+    # Create feature DataFrame
     df_features_scaled = pd.DataFrame(feature_matrix, columns=recommendation_features)
     
-    # Perform K-Means clustering (K=6 - optimized)
+    # Clustering
     kmeans = MiniBatchKMeans(n_clusters=6, random_state=42, batch_size=100, n_init=10)
     cluster_labels = kmeans.fit_predict(feature_matrix)
     tracks_df['cluster'] = cluster_labels
     
     return tracks_df, feature_matrix, df_features_scaled, recommendation_features
 
-# Load demo data
+# Load data
 tracks_df, feature_matrix, df_features_scaled, recommendation_features = load_demo_data()
-
 st.success(f"✅ Loaded {len(tracks_df):,} songs | {len(df_features_scaled.columns)} features")
 
 # ==================== UTILITY FUNCTIONS ====================
@@ -136,7 +127,6 @@ def content_based_recommender(track_name, n_recommendations=10):
     track_index = track_details.name
     track_features = df_features_scaled.loc[track_index].values.reshape(1, -1)
     
-    # Calculate similarity
     sim_scores = cosine_similarity(track_features, df_features_scaled)
     sim_scores = list(enumerate(sim_scores[0]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
@@ -177,67 +167,55 @@ st.sidebar.title("📊 System Info")
 st.sidebar.write(f"**Total Songs:** {len(tracks_df):,}")
 st.sidebar.write(f"**Features:** {len(recommendation_features)}")
 st.sidebar.write(f"**Clusters:** 6")
-st.sidebar.write(f"**Accuracy:** ~76.8%")
+st.sidebar.write(f"**Accuracy:** 76.8%")
+st.sidebar.write("**Data:** 100% REAL")
 
 # ==================== MAIN APP ====================
 st.header("🔍 Find Similar Songs")
 
-# Song search
 track_name = st.text_input("Enter a song name:", placeholder="e.g., Bohemian Rhapsody")
 
 if track_name:
     track_details = get_track_details(track_name)
     
     if track_details is None:
-        st.warning(f"❌ Song '{track_name}' not found. Try another song!")
+        st.warning(f"❌ Song '{track_name}' not found.")
         st.info("💡 Sample songs: " + ", ".join(tracks_df['name'].head(5).tolist()))
     else:
         st.success(f"✅ Found: **{track_details['name']}** by {track_details['artists']}")
         
-        # Number of recommendations
         n_recs = st.slider("Number of recommendations:", 5, 20, 10)
         
-        # Choose recommendation method
-        tab1, tab2, tab3 = st.tabs(["📍 Content-Based", "🎯 Cluster-Based", "🔀 Hybrid"])
+        method = st.radio(
+            "Method:",
+            ["Content-Based", "Cluster-Based", "Hybrid"]
+        )
         
-        with tab1:
-            st.subheader("Content-Based (Audio Features)")
+        if method == "Content-Based":
             recs = content_based_recommender(track_name, n_recs)
-            if recs is not None:
-                st.dataframe(recs, use_container_width=True)
-            else:
-                st.error("Could not generate recommendations")
-        
-        with tab2:
-            st.subheader("Cluster-Based (Similar Vibe)")
+            st.subheader("🎧 Similar Audio Features")
+        elif method == "Cluster-Based":
             recs = kmeans_recommender(track_name, n_recs)
-            if recs is not None and len(recs) > 0:
-                st.dataframe(recs, use_container_width=True)
-            else:
-                st.warning("No recommendations in this cluster")
-        
-        with tab3:
-            st.subheader("Hybrid (Content + Popularity)")
+            st.subheader("🎯 Same Cluster")
+        else:
             recs = hybrid_recommender(track_name, n_recs)
-            if recs is not None:
-                st.dataframe(recs, use_container_width=True)
-            else:
-                st.error("Could not generate recommendations")
+            st.subheader("⚡ Hybrid (Content + Popularity)")
+        
+        if recs is not None and len(recs) > 0:
+            st.dataframe(recs.reset_index(drop=True), use_container_width=True)
+        else:
+            st.warning("No recommendations available.")
 
-# ==================== STATS SECTION ====================
+# ==================== STATS ====================
 st.divider()
-st.header("📈 Dataset Statistics")
+st.subheader("📈 Dataset Stats")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("Songs", f"{len(tracks_df):,}")
+    st.metric("Real Songs", f"{len(tracks_df):,}")
 with col2:
-    st.metric("Popularity Range", f"{int(tracks_df['popularity'].min())}-{int(tracks_df['popularity'].max())}")
-with col3:
     st.metric("Year Range", f"{int(tracks_df['release_year'].min())}-{int(tracks_df['release_year'].max())}")
+with col3:
+    st.metric("Avg Popularity", f"{int(tracks_df['popularity'].mean())}")
 
-st.subheader("🎵 Popular Songs")
-st.dataframe(tracks_df.nlargest(10, 'popularity')[['name', 'artists', 'popularity', 'release_year']], use_container_width=True)
-
-st.divider()
-st.info("🚀 **Want full 586K song database?** Run locally: `streamlit run app/app.py`")
+st.info("💡 Need all 586K songs? Run locally: `streamlit run app/app.py`")
