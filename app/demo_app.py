@@ -173,7 +173,16 @@ st.sidebar.write("**Data:** 100% REAL")
 # ==================== MAIN APP ====================
 st.header("🔍 Find Similar Songs")
 
-track_name = st.text_input("Enter a song name:", placeholder="e.g., Bohemian Rhapsody")
+# Show sample songs
+st.subheader("🎵 Try These Popular Songs:")
+sample_songs = tracks_df.nlargest(10, 'popularity')['name'].tolist()
+cols = st.columns(5)
+for idx, song in enumerate(sample_songs[:5]):
+    with cols[idx]:
+        if st.button(f"🎵 {song[:20]}", key=f"sample_{idx}"):
+            st.session_state.selected_song = song
+
+track_name = st.text_input("Enter a song name:", placeholder="e.g., Bohemian Rhapsody", value=st.session_state.get('selected_song', ''))
 
 if track_name:
     track_details = get_track_details(track_name)
