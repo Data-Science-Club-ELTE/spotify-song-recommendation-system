@@ -5,7 +5,34 @@ from pathlib import Path
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import MiniBatchKMeans
 import warnings
+import urllib.request
+import os
 warnings.filterwarnings('ignore')
+
+# ==================== DATA DOWNLOAD FUNCTION ====================
+def download_data_files():
+    """Download data files from GitHub Releases if they don't exist locally."""
+    data_path = Path(__file__).parent.parent / 'data'
+    data_path.mkdir(exist_ok=True)
+    
+    files_needed = {
+        'processed_spotify.csv': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/processed_spotify.csv',
+        'feature_matrix.npy': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_matrix.npy',
+        'feature_names.txt': 'https://github.com/Data-Science-Club-ELTE/spotify-song-recommendation-system/releases/download/v1.0-data/feature_names.txt'
+    }
+    
+    for filename, url in files_needed.items():
+        filepath = data_path / filename
+        if not filepath.exists():
+            try:
+                with st.spinner(f"📥 Downloading {filename}..."):
+                    urllib.request.urlretrieve(url, filepath)
+                    st.success(f"✅ Downloaded {filename}")
+            except Exception as e:
+                st.error(f"❌ Failed to download {filename}: {str(e)}")
+                return False
+    
+    return True
 
 # ==================== PAGE CONFIG ====================
 st.set_page_config(
@@ -23,19 +50,13 @@ def load_recommendation_data():
     """Load pre-processed data and features (cached for performance)."""
     data_path = Path(__file__).parent.parent / 'data'
     
-    # Check if data files exist
+    # Try to download files if they don't exist
+    data_path.mkdir(exist_ok=True)
     if not (data_path / 'processed_spotify.csv').exists():
-        st.error("""
-        ⚠️ **Data files not found!**
-        
-        The data files are too large for GitHub. To run this app locally:
-        1. Run `notebooks/feature_preprocessing.ipynb` to generate the data
-        2. Data will be saved to the `data/` folder
-        3. Then run this app again
-        
-        **For Streamlit Cloud deployment**, please upload the data files or run preprocessing locally first.
-        """)
-        st.stop()
+        st.info("📥 First run: downloading data files from GitHub...")
+        if not download_data_files():
+            st.error("❌ Could not load data files. Please ensure they're uploaded to GitHub Releases.")
+            st.stop()
     
     # Load processed dataset
     tracks_df = pd.read_csv(data_path / 'processed_spotify.csv')
