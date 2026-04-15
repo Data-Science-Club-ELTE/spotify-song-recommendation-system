@@ -1,0 +1,11 @@
+danceability
+energy
+valence
+acousticness
+instrumentalness
+liveness
+speechiness
+tempo
+duration_ms
+popularity
+release_year
