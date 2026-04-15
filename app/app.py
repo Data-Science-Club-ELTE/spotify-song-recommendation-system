@@ -23,6 +23,20 @@ def load_recommendation_data():
     """Load pre-processed data and features (cached for performance)."""
     data_path = Path(__file__).parent.parent / 'data'
     
+    # Check if data files exist
+    if not (data_path / 'processed_spotify.csv').exists():
+        st.error("""
+        ⚠️ **Data files not found!**
+        
+        The data files are too large for GitHub. To run this app locally:
+        1. Run `notebooks/feature_preprocessing.ipynb` to generate the data
+        2. Data will be saved to the `data/` folder
+        3. Then run this app again
+        
+        **For Streamlit Cloud deployment**, please upload the data files or run preprocessing locally first.
+        """)
+        st.stop()
+    
     # Load processed dataset
     tracks_df = pd.read_csv(data_path / 'processed_spotify.csv')
     
