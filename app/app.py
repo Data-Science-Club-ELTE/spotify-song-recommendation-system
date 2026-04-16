@@ -6,7 +6,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import MiniBatchKMeans
 import warnings
 import urllib.request
-import os
 warnings.filterwarnings('ignore')
 
 # ==================== DATA DOWNLOAD FUNCTION ====================
@@ -71,7 +70,7 @@ def load_recommendation_data():
     # Create DataFrame from features
     df_features_scaled = pd.DataFrame(feature_matrix, columns=recommendation_features)
     
-    # Perform K-Means clustering (K=6 - optimized for 76.8% accuracy)
+    # MiniBatchKMeans for scalable clustering (K=6)
     kmeans = MiniBatchKMeans(n_clusters=6, random_state=42, batch_size=5000, n_init=10)
     cluster_labels = kmeans.fit_predict(feature_matrix)
     tracks_df['cluster'] = cluster_labels
@@ -83,10 +82,17 @@ tracks_df, feature_matrix, df_features_scaled, recommendation_features = load_re
 
 # ==================== UTILITY FUNCTIONS ====================
 def get_track_details(track_name):
-    """Find a track by name."""
-    track_query = tracks_df.loc[tracks_df['name'].str.lower() == track_name.lower()]
-    if not track_query.empty:
-        return track_query.iloc[0]
+    """Find a track by exact title, or first case-insensitive substring match."""
+    q = track_name.strip()
+    if not q:
+        return None
+    names_lower = tracks_df["name"].str.lower()
+    exact = tracks_df.loc[names_lower == q.lower()]
+    if not exact.empty:
+        return exact.iloc[0]
+    sub = tracks_df.loc[names_lower.str.contains(q.lower(), na=False, regex=False)]
+    if not sub.empty:
+        return sub.iloc[0]
     return None
 
 def content_based_recommender(track_name, n_recommendations=10):
@@ -111,13 +117,14 @@ def content_based_recommender(track_name, n_recommendations=10):
 
 def kmeans_recommender(track_name, n_recommendations=10):
     """Recommend songs from the same cluster."""
-    try:
-        track_cluster = tracks_df[tracks_df['name'].str.lower() == track_name.lower()]['cluster'].values[0]
-    except IndexError:
+    track_details = get_track_details(track_name)
+    if track_details is None:
         return None
-    
-    recommendations = tracks_df[tracks_df['cluster'] == track_cluster]
-    recommendations = recommendations[recommendations['name'].str.lower() != track_name.lower()]
+    track_cluster = track_details["cluster"]
+    resolved_name = track_details["name"]
+
+    recommendations = tracks_df[tracks_df["cluster"] == track_cluster]
+    recommendations = recommendations[recommendations["name"].str.lower() != str(resolved_name).lower()]
     recommendations = recommendations.sample(n=min(n_recommendations, len(recommendations)), random_state=42)
     
     return recommendations[['name', 'artists', 'popularity', 'release_year']]
@@ -156,8 +163,7 @@ st.sidebar.info(
     "📊 **System Info:**\n"
     "- 586,601 songs in database\n"
     "- 11 audio features analyzed\n"
-    "- **6 clusters (optimized K=6)**\n"
-    "- **76.8% accuracy** 🎯\n"
+    "- **6 clusters** (MiniBatchKMeans)\n"
     "- 3 recommendation engines"
 )
 
@@ -167,8 +173,8 @@ col1, col2 = st.columns([3, 1])
 with col1:
     song_input = st.text_input(
         "🎤 Enter a song name:",
-        placeholder="e.g., Bohemian Rhapsody - Remastered 2011",
-        help="Type a song title to get recommendations"
+        placeholder="e.g., Carve",
+        help="Exact title or part of a title (first match is used)",
     )
 
 with col2:
@@ -185,7 +191,7 @@ if submit_button:
         
         if track is None:
             st.error(f"❌ Song not found: '{song_input}'")
-            st.info("💡 Try searching for a popular song like 'Let It Be', 'Imagine', or 'Stairway to Heaven'")
+            st.info("💡 Try a title from the dataset, e.g. **Carve**, **Ave Maria**, or **Lazy Boi**")
         else:
             # Display input song info
             st.success(f"✅ Found: **{track['name']}** by {track['artists']}")
